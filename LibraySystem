@@ -1,0 +1,337 @@
+package com.langxi.homework;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Scanner;
+
+public class LibrarySystem {
+	
+	private BufferedReader br ;
+	private BufferedReader reader;
+	private BufferedWriter bw ;
+	private RandomAccessFile raf ;
+	private RandomAccessFile sellRaf ;
+	
+	
+	private void login() throws Exception{
+		File file = new File("./Library/user.properties");
+		if(!file.exists()){
+			file.createNewFile();
+		}
+		Properties prop = new Properties();
+		prop.setProperty("userName", "admin");
+		prop.setProperty("passWord", "123456");
+		prop.store(new FileOutputStream(file), "user");
+		Properties prop2 = new Properties();
+		prop2.load(new FileInputStream(file));
+		
+		Scanner scan = new Scanner(System.in);
+		System.out.println("请输入用户名：");
+		String userName = scan.nextLine();
+		System.out.println("请输入密码：");
+		boolean flag = true;
+		for(int i=0;i<3;i++){			
+			String passWord = scan.nextLine();
+			if(prop2.getProperty("userName").equals(userName)&&prop2.getProperty("passWord").equals(passWord)){
+				System.out.println("========恭喜你，登录成功========");
+				this.systemMenu();
+			}else{
+				System.out.println("密码错误，请再次输入，最多只能输入三次！！");
+				flag = false ;
+				continue;
+			}
+		}
+		if(flag==false){
+			System.out.println("======退出系统======");
+			System.exit(-1);
+		}
+		
+		
+	}
+	private void systemMenu() throws Exception{
+		System.out.println("系统菜单：[1]==库存管理、[2]==销售管理、[3]==退出系统");
+		Scanner scan = new Scanner(System.in);
+		String action = scan.nextLine();
+		if("1".equals(action)){
+			this.storeManagement();
+		}else if("2".equals(action)){
+			this.marketingManagement();
+		}else if("3".equals(action)){
+			System.out.println("======程序结束==========");
+			System.exit(-1);
+		}else{
+			System.out.println("====对不起，没有此功能========");
+		}
+	}
+	//=========库存管理=============
+	private void storeManagement() throws Exception{
+		File storeFile = new File("./Library/bookStore.txt");
+		if(!storeFile.exists()){
+			storeFile.createNewFile();
+		}
+		br = new BufferedReader(new FileReader(storeFile));
+		bw = new BufferedWriter(new FileWriter(storeFile,true));
+		raf = new RandomAccessFile(storeFile, "rw");
+		
+		System.out.println("请选择以下功能：");
+		System.out.println("[1]==图书入库、[2]==退出");
+		Scanner scan = new Scanner(System.in);
+		String action = scan.nextLine();
+		if("1".equals(action)){
+			//图书入库
+			System.out.println("请输入要添加图书的名称：");
+			String name = scan.nextLine();
+			//假设书库中包含要添加的图书
+			boolean flag = true;
+			for(int i=0;i<this.getLineNum(storeFile);i++){
+				String line = br.readLine();
+				if(line.contains(name)){
+					System.out.println("图书入库-前-的库存信息");
+					System.out.println("序号              书名                    作者                       进价                                 售价                              库存        ");
+					this.libraryMessage(storeFile);
+					System.out.println("请输入进货数量：");
+					String count = scan.nextLine();
+					String[] message = line.split(";");
+					String[] account = message[4].split(" ");
+					String total = String.valueOf(Integer.parseInt(count)+Integer.parseInt(account[0]));
+					raf.seek(i*106+84);
+					raf.write(this.register(total).getBytes());
+					flag = true;
+					System.out.println("图书入库-后-的库存信息");
+					System.out.println("序号              书名                    作者                       进价                                 售价                              库存        ");
+					this.libraryMessage(storeFile);
+					break;
+				}else{
+					flag = false;
+					continue;
+				}
+			}
+			if(flag==false||this.getLineNum(storeFile)==0){
+				//书库中不包含要添加的书库
+				System.out.println("书库中没有"+name+",请将详细信息输入：");
+				System.out.println("图书入库-前-的库存信息");
+				System.out.println("序号              书名                    作者                       进价                                 售价                              库存        ");
+				this.libraryMessage(storeFile);
+				System.out.println("请输入书名：");
+				String bookName = scan.nextLine();
+				bw.write(this.register(bookName)+";");
+				System.out.println("请输入作者：");
+				String author = scan.nextLine();
+				bw.write(this.register(author)+";");
+				System.out.println("请输入进价：");
+				String bid = scan.nextLine();
+				bw.write(this.register(bid)+";");
+				System.out.println("请输入售价：");
+				String price = scan.nextLine();
+				bw.write(this.register(price)+";");
+				System.out.println("请输入进货数量：");
+				String account = scan.nextLine();
+				bw.write(this.register(account));
+				bw.newLine();
+				bw.flush();
+				System.out.println("图书入库-后-的库存信息");
+				System.out.println("序号              书名                    作者                       进价                                 售价                              库存        ");
+				this.libraryMessage(storeFile);
+			}
+			System.out.println("是否继续操作：Y/N");
+			String lines = scan.nextLine();
+			if("Y".equals(lines)){
+				this.systemMenu();
+			}else{
+				System.out.println("======程序结束==========");
+				System.exit(-1);
+			}
+			
+		}else{
+			System.exit(-1);
+		}
+		raf.close();
+		bw.close();
+		br.close();
+	}
+	private String register(String date) throws Exception{
+		String line = date ;
+		for(int i=0;i<20-date.getBytes().length;i++){
+			line = line + " ";
+		}
+		return line;
+	}
+	
+	//=========销售管理===========
+	private void marketingManagement() throws Exception{
+		File storeFile = new File("./Library/bookStore.txt"); 
+		File sellFile = new File("./Library/sell.txt");
+		if(!sellFile.exists()){
+			sellFile.createNewFile();
+		}		
+		System.out.println("请选择以下功能：");
+		System.out.println("[1]==图书销售、[2]==退出");
+		Scanner scan = new Scanner(System.in);
+		String action = scan.nextLine();
+		//控制后台界面
+		boolean flag = true ;
+		while(flag){
+			raf = new RandomAccessFile(storeFile, "rw");
+			reader = new BufferedReader(new FileReader(sellFile));
+			sellRaf = new RandomAccessFile(sellFile, "rw");
+			bw = new BufferedWriter(new FileWriter(sellFile,true));
+			br = new BufferedReader(new FileReader(storeFile));
+			if("1".equals(action)){
+				System.out.println("请输入用户要买的书名：");
+				String name = scan.nextLine();
+				boolean find = false;
+				for(int i=0;i<this.getLineNum(storeFile);i++){
+					String line = br.readLine();
+					if(line.contains(name)){
+						find = true;
+						boolean big = true;
+						while(big){
+							System.out.println("请输入要够买的数量：");
+							String buyAccount = scan.nextLine();
+							String[] message = line.split(";");
+							String[] num = message[4].split(" ");
+							if(Integer.parseInt(buyAccount)<=Integer.parseInt(num[0])){
+								System.out.println("图书销售-前-的-库存-信息：");
+								System.out.println("序号              书名                    作者                       进价                                 售价                              库存        ");
+								this.libraryMessage(storeFile);
+								String result = String.valueOf(Integer.parseInt(num[0])-Integer.parseInt(buyAccount));
+								raf.seek(i*106+84);
+								raf.write(this.register(result).getBytes());
+								System.out.println("图书销售-后-的-库存-信息：");
+								System.out.println("序号              书名                    作者                       进价                                 售价                              库存        ");
+								this.libraryMessage(storeFile);
+								//====对sell.txt进行操作=============
+								String[] bid = message[2].split(" ");
+								String[] price = message[3].split(" ");
+								boolean have = true;
+								for(int j=0;j<this.getLineNum(sellFile);j++){
+									String sellLine = reader.readLine();
+									if(sellLine.contains(name)){
+										System.out.println("图书销售-前-的-销售-信息：");
+										System.out.println("序号                  书名                  作者                             进价                                 售价                              销售数量                             盈利     ");
+										this.libraryMessage(sellFile);
+										String[] sellMessage = sellLine.split(";");
+										String[] sellBid = sellMessage[2].split(" ");
+										String[] sellPrice = sellMessage[3].split(" ");
+										String[] sellCount = sellMessage[4].split(" ");
+										String[] sellInterest = sellMessage[5].split(" ");
+										String sellNumber = String.valueOf(Integer.parseInt(buyAccount)+Integer.parseInt(sellCount[0]));
+										sellRaf.seek(j*127+84);
+										sellRaf.write(this.register(sellNumber).getBytes());
+										String interest = String.valueOf(Integer.parseInt(sellNumber)*(Double.parseDouble(sellPrice[0])-Double.parseDouble(sellBid[0])));
+										sellRaf.seek(j*127+105);
+										sellRaf.write(this.register(interest).getBytes());
+										have = true;
+										flag = false;
+										big = false;
+										System.out.println("图书销售-后-的-销售-信息：");
+										System.out.println("序号                  书名                  作者                             进价                                 售价                              销售数量                             盈利     ");
+										this.libraryMessage(sellFile);										
+										break;
+									}else{
+										have = false ;
+										continue;
+									}								
+								}
+								if(have==false||this.getLineNum(sellFile)==0){
+									
+									System.out.println("图书销售-前-的-销售-信息：");
+									System.out.println("序号                  书名                  作者                             进价                                 售价                              销售数量                             盈利     ");
+									this.libraryMessage(sellFile);
+									bw.write(message[0]+";");
+									bw.write(message[1]+";");
+									bw.write(message[2]+";");
+									bw.write(message[3]+";");
+									bw.write(this.register(buyAccount)+";");
+									bw.write(this.register(String.valueOf(Integer.parseInt(buyAccount)*(Double.parseDouble(price[0])-Double.parseDouble(bid[0])))));
+									bw.newLine();
+									bw.flush();
+									flag = false;
+									big = false;
+									System.out.println("图书销售-后-的-销售-信息：");
+									System.out.println("序号                  书名                  作者                             进价                                 售价                              销售数量                             盈利     ");
+									this.libraryMessage(sellFile);
+									break;
+								}							
+							}else{
+								System.out.println("==对不起，购买的数量超过购买的数量，请重新输入！！======");	
+								big = true;
+							}
+							if(find){
+								break;
+							}
+						}
+					}else{
+						continue;
+					}
+				}
+				if(find==false){
+					System.out.println("====对不起，没有这本书！===========");
+					this.systemMenu();
+				}
+			}else{
+				System.out.println("======退出系统========");
+				System.exit(-1);				
+			}
+			if(flag==false){
+				System.out.println("请选择以下功能：");
+				System.out.println("[1]==继续购买、[2]==退出");
+				String function = scan.nextLine();
+				if("1".equals(function)){
+					flag = true ;
+				}else{
+					this.systemMenu();
+				}
+			}
+		}
+		br.close();
+		reader.close();
+		raf.close();
+		sellRaf.close();
+	}
+	private void libraryMessage(File file) throws Exception{
+		List<String> list = new ArrayList<String>();
+		BufferedReader breader = new BufferedReader(new FileReader(file));
+		for(int i=0;i<this.getLineNum(file);i++){
+			list.add(breader.readLine());
+		}
+		for(int i=0;i<list.size();i++){
+			System.out.println(String.valueOf(i+1)+"      "+this.toString(list.get(i).split(";")));
+		}
+		breader.close();
+	}
+	private String toString(String[] str) {
+		String line = " ";
+		for(int i=0;i<str.length;i++){
+			line = line + str[i];
+		}
+		return line;
+	}
+	private int getLineNum(File file) throws Exception{
+		Scanner scan = new Scanner(file);
+		int count =0 ;
+		while (scan.hasNextLine()) {
+			scan.nextLine();
+			count++;
+		}
+		return count;
+	}
+	public void run() throws Exception, Exception{
+		this.login();
+	}
+}
