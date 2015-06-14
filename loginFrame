@@ -1,0 +1,188 @@
+package com.langxi.library.login;
+
+import java.applet.Applet;
+import java.applet.AudioClip;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+
+import com.langxi.library.reader.ReaderJFrame;
+import com.langxi.library.system.SystemrJFrame;
+public class LoginJFrame extends JFrame {
+	// 登录窗口的大小
+	private int width = 400;
+	private int height = 300;
+
+	// 创建一个reader对象
+	private BufferedReader reader = null;
+
+	// 登陆界面
+	private void login() throws Exception {
+		reader = new BufferedReader(new FileReader("./info/user.txt"));
+
+		final JFrame frame = new JFrame("用户登录");
+		frame.setLocation(400, 300);
+		final JPanel panel = new JPanel();
+		panel.setLayout(null);
+		panel.setPreferredSize(new Dimension(width, height));
+		// 字体
+		Font f = new Font("楷体", Font.BOLD, 18);
+
+		// 用户名
+		JLabel username = new JLabel("用户名:", SwingConstants.RIGHT);
+		username.setFont(f);
+		username.setBounds(50, 20, 100, 30);
+		panel.add(username);
+		// 用户信息
+		final JTextField userInfo = new JTextField();
+		userInfo.setFont(f);
+		userInfo.setBounds(160, 25, 150, 25);
+		panel.add(userInfo);
+
+		// 密码
+		JLabel password = new JLabel("密 码:", SwingConstants.RIGHT);
+		password.setFont(f);
+		password.setBounds(50, 70, 100, 30);
+		panel.add(password);
+		// 密码信息
+		final JPasswordField passInfo = new JPasswordField();
+		passInfo.setFont(f);
+		passInfo.setBounds(160, 75, 150, 25);
+		passInfo.setEchoChar('*');
+		panel.add(passInfo);
+
+		// 用户权限
+		JLabel allow = new JLabel("权 限:", SwingConstants.RIGHT);
+		allow.setFont(f);
+		allow.setBounds(50, 120, 100, 30);
+		panel.add(allow);
+		// 权限信息
+		final JComboBox allowInfo = new JComboBox();
+		allowInfo.addItem("请选择：");
+		allowInfo.addItem("读者");
+		allowInfo.addItem("图书管理员");
+		allowInfo.addItem("系统管理员");
+		allowInfo.setFont(f);
+		allowInfo.setBounds(160, 125, 150, 25);
+		panel.add(allowInfo);
+
+		// 提示信息
+		final JLabel promt = new JLabel();
+		promt.setVisible(false);
+		panel.add(promt);
+
+		final JLabel hint = new JLabel();
+		hint.setVisible(false);
+		panel.add(hint);
+
+		// 登录按钮
+		JButton log = new JButton("登录");
+		log.setBounds(120, 200, 60, 30);
+		panel.add(log);
+		// 登录事件
+		log.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// 获得用户名信息
+				String userValue = userInfo.getText();
+				// 获得密码信息
+				String passValue = String.valueOf(passInfo.getPassword());
+				// 获得权限信息
+				String value = allowInfo.getSelectedItem().toString();
+
+				if (userValue.equals("") || passValue.equals("")) {
+					hint.setBounds(160, 50, 150, 30);
+					hint.setText("请输入用户名和密码！");
+					hint.setVisible(true);
+				} else {
+					if (value.equals("读者")) {
+						if ("1".equals(userValue)
+								&& "1".equals(passValue)) {
+							try {
+								new ReaderJFrame().readerInterface();
+								frame.setVisible(false);
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							
+						} else {
+							promt.setBounds(160, 50, 150, 30);
+							promt.setText("用户名或密码错误！");
+							promt.setVisible(true);
+						}
+					} else if (value.equals("图书管理员")) {
+						if ("1".equals(userValue)
+								&& "1".equals(passValue)) {
+							try {
+								new SystemrJFrame().run();
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							frame.setVisible(false);
+						} else {
+							promt.setBounds(160, 50, 150, 30);
+							promt.setText("用户名或密码错误！");
+							promt.setVisible(true);
+						}
+					} 
+					 else {
+						promt.setBounds(160, 160, 150, 30);
+						promt.setText("请选择用户权限！");
+						promt.setVisible(true);
+					}
+				}
+
+			}
+		});
+
+		// 取消按钮
+		JButton cancle = new JButton("取消");
+		cancle.setBounds(220, 200, 60, 30);
+		panel.add(cancle);
+		// 取消事件
+		cancle.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+
+		frame.add(panel);
+		frame.pack();
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+	}
+
+	public void run() throws Exception {
+
+		this.login();
+	}
+}
