@@ -1,0 +1,137 @@
+package com.langxi.library.system;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Menu;
+import java.awt.MenuBar;
+import java.awt.MenuItem;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
+
+public class SystemrJFrame {
+
+	//创建 bufferedimage对象
+	private BufferedImage image = new BufferedImage(Util.main_width, Util.main_heigh, BufferedImage.TYPE_INT_RGB);
+	//返回Graphics对象
+	private Graphics grap = image.getGraphics();
+	
+	// 创建一个内部类
+	class MyPanel extends JPanel {
+		//重写paint方法
+		@Override
+		public void paint(Graphics g) {
+			g.drawImage(image, 0, 0, null);
+		}
+	}
+
+	// 主界面 = === 管理员
+	public void run() throws Exception {
+		JFrame frame = new JFrame("图书管理系统---管理员");
+
+		//创建一个MyPanel对象
+		MyPanel panel = new MyPanel();
+		panel.setPreferredSize(new Dimension(Util.main_width, Util.main_heigh-50));
+		Image img = ImageIO.read(new File("./image/bound.jpg")); 
+		grap.drawImage(img, 0, 0, null);
+		frame.add(panel);
+		
+		// 添加菜单项
+		JMenuBar bar = new JMenuBar();
+		// 菜单
+		JMenu function = new JMenu("菜单");
+		JMenuItem password = new JMenuItem("修改密码");
+		JMenuItem exit = new JMenuItem("退出");
+		function.add(password);
+		function.addSeparator();
+		function.add(exit);
+		bar.add(function);
+		frame.setJMenuBar(bar);
+		
+		//退出监听
+		exit.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+
+		// 创建工具条
+		JToolBar tool = new JToolBar("工具条");
+		Action lendBookAction = new AbstractAction("借书", new ImageIcon(
+				"./image/lend.png")) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+			
+		};
+
+		Action returnBookAction = new AbstractAction("还书", new ImageIcon(
+				"./image/return.png")) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+
+			}
+			
+		};
+
+		Action readerAction = new AbstractAction("读者管理", new ImageIcon(
+				"./image/user.png")) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		};
+		Action bookAction = new AbstractAction("图书入库",new ImageIcon("./image/ruku.png")) {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
+
+		JButton person = new JButton(readerAction);
+		JButton lendBook = new JButton(lendBookAction);
+		JButton returnBook = new JButton(returnBookAction);
+		JButton ruku = new JButton(bookAction);
+		tool.add(lendBook);
+		tool.add(returnBook);
+		tool.add(person);
+		tool.add(ruku);
+		frame.add(tool, BorderLayout.NORTH);
+
+		frame.setBounds(100, 50, Util.main_width, Util.main_heigh);
+		frame.pack();
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+
+	
+
+}
